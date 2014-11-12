@@ -2,23 +2,18 @@ package decisiontree.mr;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Mapper.Context;
 
-import decisiontree.BagOfTrees;
 import decisiontree.Id3;
 import decisiontree.Instance;
 import decisiontree.Instances;
 import decisiontree.RecordParser;
-import decisiontree.TrainingProgram;
-import decisiontree.TreeTrainer;
 
-public class TreeMapper extends Mapper<Object, Text, Text, Id3> {
+public class TreeMapper extends Mapper<Object, Text, NullWritable, Id3> {
 
 	private String[] attributeNames;
 	private String classifier;
@@ -27,6 +22,7 @@ public class TreeMapper extends Mapper<Object, Text, Text, Id3> {
 
 	private ArrayList<Instance> instanceList;
 
+	@Override
 	public void setup(Context context) throws IOException, InterruptedException {
 
 		instanceList = new ArrayList<Instance>();
@@ -42,12 +38,16 @@ public class TreeMapper extends Mapper<Object, Text, Text, Id3> {
 		classifier = p.classifier();
 	}
 
+	@Override
 	public void map(Object key, Text value, Context context)
 			throws IOException, InterruptedException {
 
-		instance = parseStringToInstance(value.toString());
-		instanceList.add(instance);
-
+		try {
+			instance = parseStringToInstance(value.toString());
+			instanceList.add(instance);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 
 	private Instance parseStringToInstance(String string) {
@@ -60,7 +60,7 @@ public class TreeMapper extends Mapper<Object, Text, Text, Id3> {
 
 	}
 
-
+	@Override
 	public void cleanup(Context context) throws IOException,
 			InterruptedException {
 
@@ -68,15 +68,18 @@ public class TreeMapper extends Mapper<Object, Text, Text, Id3> {
 
 		int instance_size = (int) Math.sqrt(instances.attributes().size());
 
-		Id3 trainer = new Id3(instances);
-		// set tree as random forest
-		trainer.setRandomForest(instance_size);
-		// train the tree
-		trainer.traverse();
+		for (int i = 0; i < 1; i++) {
 
-		// clear training data
-		trainer.clear();
-		
-		context.write(new Text("treeeees"), trainer);
+			Id3 trainer = new Id3(instances);
+			// set tree as random forest
+			trainer.setRandomForest(instance_size);
+			// train the tree
+			trainer.traverse();
+
+			// clear training data
+			trainer.clear();
+
+			context.write(NullWritable.get(), trainer);
+		}
 	}
 }

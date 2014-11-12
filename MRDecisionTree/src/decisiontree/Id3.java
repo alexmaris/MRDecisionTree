@@ -1,5 +1,8 @@
 package decisiontree;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,11 +11,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.Writable;
 
-public class Id3 implements Serializable {
+public class Id3 implements Serializable, Writable {
 	private static final long serialVersionUID = -781699850100065981L;
 
 	private static final Log log = LogFactory.getLog(Id3.class);
@@ -618,5 +623,17 @@ public class Id3 implements Serializable {
 		this.testInstances = null;
 		// clear training data from tree structure
 		root.clear();
+	}
+
+	@Override
+	public void readFields(DataInput arg0) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void write(DataOutput arg0) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 }
