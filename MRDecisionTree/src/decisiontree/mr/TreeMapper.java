@@ -10,47 +10,73 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Mapper.Context;
 
+import decisiontree.BagOfTrees;
+import decisiontree.Id3;
+import decisiontree.Instance;
+import decisiontree.Instances;
 import decisiontree.RecordParser;
 import decisiontree.TrainingProgram;
+import decisiontree.TreeTrainer;
 
-public class TreeMapper extends Mapper<Object, Text, Text, Text> {
+public class TreeMapper extends Mapper<Object, Text, Text, Id3> {
 
-	private static ArrayList<String> list = new ArrayList<String>();
-	private Text word = new Text();
 	private String[] attributeNames;
 	private String classifier;
-	
 
-	public void setup(Context context) throws IOException,
-			InterruptedException {
-		
+	private Instance instance;
+
+	private ArrayList<Instance> instanceList;
+
+	public void setup(Context context) throws IOException, InterruptedException {
+
+		instanceList = new ArrayList<Instance>();
+
 		Configuration conf = context.getConfiguration();
 		String attributesString = conf.get("attributeNames");
 
 		RecordParser p = new RecordParser(attributesString);
 		// get attribute names from header
 		attributeNames = p.values();
-		
+
 		// get classifier name from header
 		classifier = p.classifier();
-		
 	}
-			
-
 
 	public void map(Object key, Text value, Context context)
 			throws IOException, InterruptedException {
 
-		list.add(value.toString());
+		instance = parseStringToInstance(value.toString());
+		instanceList.add(instance);
 
-		if ((list.size() % 100) == 0) {
-			
-			//System.out.println("we've got us " + list.size() + " records");
-			System.out.println("attributes size:" + attributeNames.length);
-			System.out.println("class name:" + classifier);
-			word.set("we've got us " + list.size() + " records");
-			context.write(value, word);
-		}
+	}
 
+	private Instance parseStringToInstance(String string) {
+		// parse data record
+		RecordParser parser = new RecordParser(string);
+
+		// add the instance attribute names and values
+		return new Instance(attributeNames, parser.values(),
+				parser.classifier());
+
+	}
+
+
+	public void cleanup(Context context) throws IOException,
+			InterruptedException {
+
+		Instances instances = new Instances(instanceList);
+
+		int instance_size = (int) Math.sqrt(instances.attributes().size());
+
+		Id3 trainer = new Id3(instances);
+		// set tree as random forest
+		trainer.setRandomForest(instance_size);
+		// train the tree
+		trainer.traverse();
+
+		// clear training data
+		trainer.clear();
+		
+		context.write(new Text("treeeees"), trainer);
 	}
 }

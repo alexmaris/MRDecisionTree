@@ -36,20 +36,27 @@ public class TrainingProgram {
 
 	/**
 	 * Constructor used if skipping the data loading from file
-	 * @param attributeNames
-	 * @param classifier
-	 * @param rawTrainingData
 	 */
-	public TrainingProgram(String[] attributeNames, String classifier, ArrayList<String> rawTrainingData){
+	public TrainingProgram(String[] attributeNames, String classifier,
+			ArrayList<String> rawTrainingData) {
 		this();
-		
+
 		this.attributeNames = attributeNames;
-		
+
 		this.classifier = classifier;
-		
+
 		this.rawTrainingData = rawTrainingData;
 	}
-	
+
+	/**
+	 * Get BagOfTrees
+	 * 
+	 * @return
+	 */
+	public BagOfTrees getBagOfTrees() {
+		return bagOfTrees;
+	}
+
 	/**
 	 * Get number of trees in bag
 	 */
@@ -65,17 +72,18 @@ public class TrainingProgram {
 
 		loadData(path_to_file);
 
-		trainTreesOnDataSplits(dataSplit, treeCount);
+		trainTreesOnDataSplits(dataSplit, treeCount, true);
 	}
-	
+
 	/**
 	 * Randomize data and train trees
 	 */
-	public void Run(int dataSplit, int treeCount){
-		
+	public void Run(int dataSplit, int treeCount) {
+		bagOfTrees = new BagOfTrees();
+
 		randomizeData();
-		
-		trainTreesOnDataSplits(dataSplit, treeCount);
+
+		trainTreesOnDataSplits(dataSplit, treeCount, false);
 	}
 
 	/**
@@ -92,7 +100,7 @@ public class TrainingProgram {
 	 * chunks
 	 */
 	private void trainTreesOnDataSplits(int dataSplitFactor,
-			int numberOfTreesEachSplit) {
+			int numberOfTreesEachSplit, boolean printConfusionMatrix) {
 
 		// Break up the raw training data into small pieces that trees will be
 		// trained from
@@ -131,8 +139,10 @@ public class TrainingProgram {
 		// Clear out the data that was used for training
 		rawTrainingData.clear();
 
-		// Print confusion matrix for the data set aside for testing
-		generateConfussionMatrix(rawTestingData);
+		if (printConfusionMatrix) {
+			// Print confusion matrix for the data set aside for testing
+			generateConfussionMatrix(rawTestingData);
+		}
 	}
 
 	/**
