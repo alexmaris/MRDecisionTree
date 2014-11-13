@@ -16,9 +16,7 @@ public class TreeReducer extends Reducer<NullWritable, Id3, NullWritable, Text> 
 		public void reduce(NullWritable key, Iterable<Id3> values, Context context) 
 				throws IOException, InterruptedException {
 			
-			//classification = values.iterator().next();
 			int i = 0;
-			
 			
 			while(values.iterator().hasNext()){
 				i++;
