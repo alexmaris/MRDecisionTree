@@ -36,11 +36,11 @@ public class Driver {
 		job.setMapOutputValueClass(Id3.class);
 
 		job.setOutputKeyClass(NullWritable.class);
-		job.setOutputValueClass(Text.class);
+		job.setOutputValueClass(BytesValueOutputFormat.class);
 		job.setNumReduceTasks(1);
 
 		FileInputFormat.setInputPaths(job, new Path(inputPath));
-		FileInputFormat.setMaxInputSplitSize(job, 2000000);
+		FileInputFormat.setMaxInputSplitSize(job, 10000000);
 
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
 

@@ -2,6 +2,8 @@ package decisiontree.mr;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -64,22 +66,45 @@ public class TreeMapper extends Mapper<Object, Text, NullWritable, Id3> {
 	public void cleanup(Context context) throws IOException,
 			InterruptedException {
 
-		Instances instances = new Instances(instanceList);
+		// Shuffle the instances
+		Collections.shuffle(instanceList);
 
-		int instance_size = (int) Math.sqrt(instances.attributes().size());
+		// Use 90% of the instances for training and 10% for oob testing
+		int trainingCount = (int) (instanceList.size() * .9);
+		Instances trainingInstances = new Instances(instanceList.subList(0,
+				trainingCount));
+		List<Instance> testingInstances = instanceList.subList(trainingCount,
+				instanceList.size());
 
-		for (int i = 0; i < 1; i++) {
+		int instance_size = (int) Math.sqrt(trainingInstances.attributes()
+				.size());
 
-			Id3 trainer = new Id3(instances);
+		for (int i = 0; i < instance_size; i++) {
+
+			Id3 trainer = new Id3(trainingInstances);
 			// set tree as random forest
 			trainer.setRandomForest(instance_size);
+
 			// train the tree
 			trainer.traverse();
+
+			// Calculate OOB metric
+			calculateOOB(trainer, testingInstances);
 
 			// clear training data
 			trainer.clear();
 
 			context.write(NullWritable.get(), trainer);
+		}
+	}
+
+	public void calculateOOB(Id3 tree, List<Instance> instances) {
+		for (Instance inst : instances) {
+			String classification = tree.classify(inst);
+			if (!classification.equalsIgnoreCase(inst.classifier())) {
+				tree.totalMisClassifications++;
+			}
+			tree.totalClassifications++;
 		}
 	}
 }

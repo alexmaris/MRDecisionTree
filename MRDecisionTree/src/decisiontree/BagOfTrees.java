@@ -1,5 +1,7 @@
 package decisiontree;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,6 +16,8 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
 public class BagOfTrees {
 	private static final Log log = LogFactory.getLog(BagOfTrees.class);
@@ -44,22 +48,21 @@ public class BagOfTrees {
 	public void addTrees(Id3[] trees) {
 		bagOfTrees.addAll(Arrays.asList(trees));
 	}
-	
+
 	/**
 	 * Add an array of trees to the collection
 	 */
 	public void addTrees(List<Id3> trees) {
 		bagOfTrees.addAll(trees);
 	}
-	
-	
+
 	/**
 	 * Return a List containing all Id3 trees
 	 */
-	public List<Id3> getTrees(){
+	public List<Id3> getTrees() {
 		return bagOfTrees;
 	}
-	
+
 	/**
 	 * Returns the Id3 tree at the specified position in the list
 	 * 
@@ -78,6 +81,23 @@ public class BagOfTrees {
 	 */
 	public int count() {
 		return bagOfTrees.size();
+	}
+	
+	public int getTotalClassifications (){
+		int count =0;
+		for(Id3 tree: bagOfTrees){
+			count += tree.totalClassifications;
+		}
+		
+		return count;
+	}
+	
+	public int gettotalMisClassifications(){
+		int count =0;
+		for(Id3 tree: bagOfTrees){
+			count += tree.totalMisClassifications;
+		}
+		return count;
 	}
 
 	/**
@@ -107,6 +127,24 @@ public class BagOfTrees {
 
 	}
 
+	public byte[] serializeBagToBytes() {
+		ByteArrayOutputStream  bout = new ByteArrayOutputStream ();
+
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(bout);
+
+			oos.writeObject(bagOfTrees);
+			oos.flush();
+			bout.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return bout.toByteArray();
+	}
+
 	/**
 	 * De-serialize from a file a list of trees
 	 * 
@@ -125,6 +163,21 @@ public class BagOfTrees {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public void readBagFromBytes(byte[] bytes){
+		try{
+			ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
+			ObjectInputStream ois = new ObjectInputStream(bin);
+			
+			bagOfTrees = (ArrayList<Id3>) ois.readObject();
+			
+			ois.close();
+			
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**
@@ -164,19 +217,18 @@ public class BagOfTrees {
 
 		return mostPopularClassification;
 	}
-	
-	
+
 	/**
 	 * Return the number of incorrectly classified instances
 	 */
-	public int getOutOfBagErrorCount(List<Instance> instanceData){
+	public int getOutOfBagErrorCount(List<Instance> instanceData) {
 		int count = 0;
-		for(Instance instance: instanceData){
-			if(!instance.classifier().equals(classifyByVote(instance))){
+		for (Instance instance : instanceData) {
+			if (!instance.classifier().equals(classifyByVote(instance))) {
 				count++;
 			}
 		}
-		
+
 		return count;
 	}
 

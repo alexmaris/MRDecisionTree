@@ -30,11 +30,17 @@ public class Id3 implements Serializable, Writable {
 	private Instances instances;
 	private double accuracy;
 	private Id3Node root;
+	
+	public int totalClassifications;
+	public int totalMisClassifications;
 
 	/**
 	 * Constructor for id3
 	 */
 	public Id3(Instances instances) {
+		totalClassifications = 0;
+		totalMisClassifications = 0;
+		
 		this.instances = instances;
 		// create the root node
 		setRoot(new Id3Node(instances));
