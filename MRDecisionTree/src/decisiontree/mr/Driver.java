@@ -16,7 +16,7 @@ import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import decisiontree.Id3;
 
 public class Driver {
-	public void run(String inputPath, String outputPath, int maxInputSplitSize) throws Exception {
+	public void run(String inputPath, String outputPath, int maxInputSplitSize, int numberOfTrees) throws Exception {
 
 		Configuration conf = new Configuration();
 
@@ -35,6 +35,7 @@ public class Driver {
 						"#duration,@protocol_type,@service,@flag,#src_bytes,#dst_bytes,@land,#wrong_fragment,#urgent,#hot,#num_failed_logins,@logged_in,#num_compromised,#root_shell,#su_attempted,#num_root,#num_file_creations,#num_shells,#num_access_files,#num_outbound_cmds,@is_host_login,@is_guest_login,#count,#srv_count,#serror_rate,#srv_serror_rate,#rerror_rate,#srv_rerror_rate,#same_srv_rate,#diff_srv_rate,#srv_diff_host_rate,#dst_host_count,#dst_host_srv_count,#dst_host_same_srv_rate,#dst_host_diff_srv_rate,#dst_host_same_src_port_rate,#dst_host_srv_diff_host_rate,#dst_host_serror_rate,#dst_host_srv_serror_rate,#dst_host_rerror_rate,#dst_host_srv_rerror_rate,class");
 
 		job.getConfiguration().set("outputPath", outputPath);
+		job.getConfiguration().setInt("numberOfTrees", numberOfTrees);
 		
 		job.setMapperClass(TreeMapper.class);
 		job.setReducerClass(TreeReducer.class);
@@ -71,14 +72,14 @@ public class Driver {
 	public static void main(String[] args) throws Exception {
 		// Make sure that an input, output directory as well training data file
 		// are provided
-		if (args.length != 3) {
+		if (args.length != 4) {
 			System.out.println("Usage Parms: <input dir> <output dir> <setMaxInputSplitSize>");
 			System.exit(-1);
 		}
 
 		// Run the MapReduce job
 		Driver driver = new Driver();
-		driver.run(args[0], args[1], Integer.parseInt(args[2]));
+		driver.run(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 
 	}
 }

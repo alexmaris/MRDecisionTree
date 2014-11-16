@@ -34,28 +34,18 @@ public class TreeReducer extends Reducer<NullWritable, Id3, NullWritable, BytesW
 
 			BytesWritable bytes = new BytesWritable(bot.serializeBagToBytes());
 			
+			context.write(NullWritable.get(), bytes);
 			
 			
+			/*
+			// Write data output to file on hdfs
 			String path = context.getConfiguration().get("outputPath");
-			
 			Path file = new Path(path + "forest.trees");
 			FileSystem fs = file.getFileSystem(context.getConfiguration());
 			
-			context.write(NullWritable.get(), bytes);
-			
-			// Write data output to file on hdfs
 			DataOutputStream dos = fs.create(file);
-			dos.write(bot.serializeBagToBytes());
+			dos.write(bot.serializeBagToBytes());*/
 			
 		}
-		
-	    private static String toString( Serializable o ) throws IOException {
-	    	ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	        ObjectOutputStream os = new ObjectOutputStream(bos);
-	        os.writeObject(o);
-	        String serializedObject = bos.toString();
-	        os.close();
-			return serializedObject;
-	    }
 
 }

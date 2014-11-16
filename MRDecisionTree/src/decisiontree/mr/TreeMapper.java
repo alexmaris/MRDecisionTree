@@ -19,6 +19,7 @@ public class TreeMapper extends Mapper<Object, Text, NullWritable, Id3> {
 
 	private String[] attributeNames;
 	private String classifier;
+	private int numberOfTrees;
 
 	private Instance instance;
 
@@ -31,6 +32,7 @@ public class TreeMapper extends Mapper<Object, Text, NullWritable, Id3> {
 
 		Configuration conf = context.getConfiguration();
 		String attributesString = conf.get("attributeNames");
+		numberOfTrees = conf.getInt("numberOfTrees", 15);
 
 		RecordParser p = new RecordParser(attributesString);
 		// get attribute names from header
@@ -76,10 +78,10 @@ public class TreeMapper extends Mapper<Object, Text, NullWritable, Id3> {
 		List<Instance> testingInstances = instanceList.subList(trainingCount,
 				instanceList.size());
 
-		int instance_size = (int) Math.sqrt(trainingInstances.attributes()
-				.size());
+		int instance_size = ((int) Math.sqrt(trainingInstances.attributes()
+				.size())) + 1;
 
-		for (int i = 0; i < instance_size; i++) {
+		for (int i = 0; i < numberOfTrees; i++) {
 
 			Id3 trainer = new Id3(trainingInstances);
 			// set tree as random forest
