@@ -1,7 +1,10 @@
 package decisiontree.mr;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -31,15 +34,28 @@ public class TreeReducer extends Reducer<NullWritable, Id3, NullWritable, BytesW
 
 			BytesWritable bytes = new BytesWritable(bot.serializeBagToBytes());
 			
+			
+			
 			String path = context.getConfiguration().get("outputPath");
 			
 			Path file = new Path(path + "forest.trees");
 			FileSystem fs = file.getFileSystem(context.getConfiguration());
+			
+			context.write(NullWritable.get(), bytes);
 			
 			// Write data output to file on hdfs
 			DataOutputStream dos = fs.create(file);
 			dos.write(bot.serializeBagToBytes());
 			
 		}
+		
+	    private static String toString( Serializable o ) throws IOException {
+	    	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	        ObjectOutputStream os = new ObjectOutputStream(bos);
+	        os.writeObject(o);
+	        String serializedObject = bos.toString();
+	        os.close();
+			return serializedObject;
+	    }
 
 }

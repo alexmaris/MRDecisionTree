@@ -2,16 +2,21 @@ package decisiontree.mr;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileAsBinaryOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 import decisiontree.Id3;
 
 public class Driver {
-	public void run(String inputPath, String outputPath) throws Exception {
+	public void run(String inputPath, String outputPath, int maxInputSplitSize) throws Exception {
 
 		Configuration conf = new Configuration();
 
@@ -38,13 +43,18 @@ public class Driver {
 		job.setMapOutputValueClass(Id3.class);
 
 		job.setOutputKeyClass(NullWritable.class);
-		job.setOutputValueClass(BytesValueOutputFormat.class);
+		job.setOutputValueClass(BytesWritable.class);
 		job.setNumReduceTasks(1);
 
 		FileInputFormat.setInputPaths(job, new Path(inputPath));
-		FileInputFormat.setMaxInputSplitSize(job, 10000000);
+		FileInputFormat.setMaxInputSplitSize(job, maxInputSplitSize);
+	
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+	
+		SequenceFileOutputFormat.setOutputPath(job, new Path(outputPath));
 
-		FileOutputFormat.setOutputPath(job, new Path(outputPath));
+		//FileOutputFormat.setOutputPath(job, new Path(outputPath));
+		
 
 		job.submit();
 
@@ -61,14 +71,14 @@ public class Driver {
 	public static void main(String[] args) throws Exception {
 		// Make sure that an input, output directory as well training data file
 		// are provided
-		if (args.length != 2) {
-			System.out.println("Usage Parms: <input dir> <output dir>");
+		if (args.length != 3) {
+			System.out.println("Usage Parms: <input dir> <output dir> <setMaxInputSplitSize>");
 			System.exit(-1);
 		}
 
 		// Run the MapReduce job
 		Driver driver = new Driver();
-		driver.run(args[0], args[1]);
+		driver.run(args[0], args[1], Integer.parseInt(args[2]));
 
 	}
 }
