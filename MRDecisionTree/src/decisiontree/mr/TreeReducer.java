@@ -1,5 +1,6 @@
 package decisiontree.mr;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -14,8 +15,6 @@ import decisiontree.BagOfTrees;
 import decisiontree.Id3;
 
 public class TreeReducer extends Reducer<NullWritable, Id3, NullWritable, BytesWritable> {
-
-		private Text classification;
 		
 		@Override
 		public void reduce(NullWritable key, Iterable<Id3> values, Context context) 
@@ -29,19 +28,17 @@ public class TreeReducer extends Reducer<NullWritable, Id3, NullWritable, BytesW
 				
 				bot.addTree(tree);
 			}
-			classification = new Text("Number of trees: " + Integer.toString(i));
 
 			BytesWritable bytes = new BytesWritable(bot.serializeBagToBytes());
-			//BytesWritable bytes = new BytesWritable("test".getBytes());
-			//context.write(NullWritable.get(), bytes);
-			//context.write(NullWritable.get(), classification);
 			
+			String path = context.getConfiguration().get("outputPath");
 			
-			Path file = new Path("hdfs://192.168.1.87:8020/ddata/output/forest.trees");
+			Path file = new Path(path + "forest.trees");
 			FileSystem fs = file.getFileSystem(context.getConfiguration());
-			SequenceFile.Writer inputWriter = new SequenceFile.Writer(fs, context.getConfiguration(), file, NullWritable.class, BytesWritable.class);
-			inputWriter.append(NullWritable.get(), bytes);
-			inputWriter.close();
+			
+			// Write data output to file on hdfs
+			DataOutputStream dos = fs.create(file);
+			dos.write(bot.serializeBagToBytes());
 			
 		}
 
